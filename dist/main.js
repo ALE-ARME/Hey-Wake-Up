@@ -1,0 +1,220 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const obsidian_1 = require("obsidian");
+const DEFAULT_SETTINGS = {
+    flashColor: '#FF0000', // Default to red
+    flashDuration: 500, // 0.5 seconds
+    flashInterval: 500, // 0.5 seconds
+    flashCycles: 0, // Infinite flashes by default
+    idleTimeSeconds: 30, // 30 seconds by default
+};
+class IdleNotifierPlugin extends obsidian_1.Plugin {
+    settings;
+    idleTimer = null;
+    flashTimer = null;
+    flashCount = 0;
+    isFlashing = false;
+    constructor(app, manifest) {
+        super(app, manifest);
+        this.settings = DEFAULT_SETTINGS;
+    }
+    async onload() {
+        console.log('Loading Idle Notifier plugin');
+        await this.loadSettings();
+        this.addSettingTab(new IdleNotifierSettingTab(this.app, this));
+        this.resetIdleTimer();
+        // Listen for user activity
+        this.registerDomEvent(document, 'mousemove', this.resetIdleTimer.bind(this));
+        this.registerDomEvent(document, 'keydown', this.resetIdleTimer.bind(this));
+        // Add a CSS class for flashing (no animation, just for applying color)
+        const style = document.createElement('style');
+        style.id = 'idle-notifier-style';
+        style.textContent = `
+            .idle-notifier-flash-active {
+                background-color: ${this.settings.flashColor} !important;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    onunload() {
+        console.log('Unloading Idle Notifier plugin');
+        this.clearIdleTimer();
+        this.stopFlashing();
+        document.getElementById('idle-notifier-style')?.remove();
+    }
+    async loadSettings() {
+        this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+    }
+    async saveSettings() {
+        await this.saveData(this.settings);
+        // Update CSS style immediately after saving settings
+        const styleEl = document.getElementById('idle-notifier-style');
+        if (styleEl) {
+            styleEl.textContent = `
+                .idle-notifier-flash-active {
+                    background-color: ${this.settings.flashColor} !important;
+                }
+            `;
+        }
+    }
+    resetIdleTimer() {
+        this.clearIdleTimer();
+        this.stopFlashing();
+        this.idleTimer = window.setTimeout(() => {
+            this.startFlashing();
+        }, this.settings.idleTimeSeconds * 1000); // Use idleTimeSeconds
+    }
+    clearIdleTimer() {
+        if (this.idleTimer !== null) {
+            window.clearTimeout(this.idleTimer);
+            this.idleTimer = null;
+        }
+    }
+    startFlashing() {
+        if (this.isFlashing)
+            return;
+        this.isFlashing = true;
+        this.flashCount = 0; // Reset flash count
+        console.log('Starting to flash due to inactivity');
+        this.flashLoop();
+    }
+    flashLoop() {
+        if (!this.isFlashing)
+            return;
+        if (this.settings.flashCycles !== 0 && this.flashCount >= this.settings.flashCycles) {
+            this.stopFlashing();
+            return;
+        }
+        // Apply flash class to active note pane background
+        this.app.workspace.iterateAllLeaves((leaf) => {
+            if (leaf.view.containerEl) {
+                const editorEl = leaf.view.containerEl.querySelector('.cm-editor');
+                if (editorEl) {
+                    editorEl.addClass('idle-notifier-flash-active');
+                }
+            }
+        });
+        this.flashTimer = window.setTimeout(() => {
+            // Remove flash class from active note pane background
+            this.app.workspace.iterateAllLeaves((leaf) => {
+                if (leaf.view.containerEl) {
+                    const editorEl = leaf.view.containerEl.querySelector('.cm-editor');
+                    if (editorEl) {
+                        editorEl.removeClass('idle-notifier-flash-active');
+                    }
+                }
+            });
+            this.flashCount++;
+            this.flashTimer = window.setTimeout(() => this.flashLoop(), this.settings.flashInterval);
+        }, this.settings.flashDuration);
+    }
+    stopFlashing() {
+        if (!this.isFlashing)
+            return;
+        this.isFlashing = false;
+        console.log('Stopping flash');
+        this.clearFlashTimer();
+        // Ensure active note pane background is reset to normal state
+        this.app.workspace.iterateAllLeaves((leaf) => {
+            if (leaf.view.containerEl) {
+                const editorEl = leaf.view.containerEl.querySelector('.cm-editor');
+                if (editorEl) {
+                    editorEl.removeClass('idle-notifier-flash-active');
+                }
+            }
+        });
+    }
+    clearFlashTimer() {
+        if (this.flashTimer !== null) {
+            window.clearTimeout(this.flashTimer);
+            this.flashTimer = null;
+        }
+    }
+}
+exports.default = IdleNotifierPlugin;
+class IdleNotifierSettingTab extends obsidian_1.PluginSettingTab {
+    plugin;
+    constructor(app, plugin) {
+        super(app, plugin);
+        this.plugin = plugin;
+    }
+    display() {
+        const { containerEl } = this;
+        containerEl.empty();
+        containerEl.createEl('h2', { text: 'Idle Notifier Settings' });
+        new obsidian_1.Setting(containerEl)
+            .setName('Flash Color')
+            .setDesc('Choose the color for the flashing effect. Default is red.')
+            .addColorPicker(colorPicker => colorPicker
+            .setValue(this.plugin.settings.flashColor)
+            .onChange(async (value) => {
+            this.plugin.settings.flashColor = value;
+            await this.plugin.saveSettings();
+        }));
+        new obsidian_1.Setting(containerEl)
+            .setName('Flash Duration')
+            .setDesc('How long the flash color stays visible (in milliseconds). Higher values mean longer flashes.')
+            .addText(text => text
+            .setPlaceholder('500')
+            .setValue(this.plugin.settings.flashDuration.toString())
+            .onChange(async (value) => {
+            const numValue = parseInt(value);
+            if (!isNaN(numValue) && numValue >= 0) {
+                this.plugin.settings.flashDuration = numValue;
+                await this.plugin.saveSettings();
+            }
+            else {
+                console.warn('Invalid Flash Duration value. Please enter a non-negative number.');
+            }
+        }));
+        new obsidian_1.Setting(containerEl)
+            .setName('Flash Interval')
+            .setDesc('The time between flashes (in milliseconds). Higher values mean slower flashing.')
+            .addText(text => text
+            .setPlaceholder('500')
+            .setValue(this.plugin.settings.flashInterval.toString())
+            .onChange(async (value) => {
+            const numValue = parseInt(value);
+            if (!isNaN(numValue) && numValue >= 0) {
+                this.plugin.settings.flashInterval = numValue;
+                await this.plugin.saveSettings();
+            }
+            else {
+                console.warn('Invalid Flash Interval value. Please enter a non-negative number.');
+            }
+        }));
+        new obsidian_1.Setting(containerEl)
+            .setName('Flash Cycles')
+            .setDesc('Number of times the screen will flash. Set to 0 for infinite flashes.')
+            .addText(text => text
+            .setPlaceholder('0')
+            .setValue(this.plugin.settings.flashCycles.toString())
+            .onChange(async (value) => {
+            const numValue = parseInt(value);
+            if (!isNaN(numValue) && numValue >= 0) {
+                this.plugin.settings.flashCycles = numValue;
+                await this.plugin.saveSettings();
+            }
+            else {
+                console.warn('Invalid Flash Cycles value. Please enter a non-negative number.');
+            }
+        }));
+        new obsidian_1.Setting(containerEl)
+            .setName('Idle Time')
+            .setDesc('Time in seconds before the flashing starts.')
+            .addText(text => text
+            .setPlaceholder('30')
+            .setValue(this.plugin.settings.idleTimeSeconds.toString())
+            .onChange(async (value) => {
+            const numValue = parseInt(value);
+            if (!isNaN(numValue) && numValue >= 0) {
+                this.plugin.settings.idleTimeSeconds = numValue;
+                await this.plugin.saveSettings();
+            }
+            else {
+                console.warn('Invalid Idle Time value. Please enter a non-negative number.');
+            }
+        }));
+    }
+}
+//# sourceMappingURL=main.js.map
