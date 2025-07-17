@@ -9,7 +9,7 @@ It works on computer and mobile
 3. Go to `YourVaultName/.obsidian/plugins`
 4. Create a folder named `hey-wake-up`
 5. Put `main.js` and `manifest.js` in the `hey-wake-up` folder
-6. Go to `Obsidian's Community Plugins` tab in Obsidian's settings and reload the plugin lists
+6. Go to `Obsidian's Community Plugins` tab in Obsidian's settings and reload the plugins list
 7. Enable the plugin
 ## From Community Plugins Tab
 It's not available there currently
