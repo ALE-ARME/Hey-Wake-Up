@@ -1,5 +1,5 @@
 import { Plugin } from 'obsidian';
-export default class IdleNotifierPlugin extends Plugin {
+export default class HeyWakeUpPlugin extends Plugin {
     private idleTimer;
     private readonly IDLE_TIMEOUT_MS;
     private isFlashing;
