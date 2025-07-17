@@ -1,6 +1,6 @@
 import { App, Plugin, PluginSettingTab, Setting, WorkspaceLeaf, PluginManifest } from 'obsidian';
 
-interface IdleNotifierSettings {
+interface HeyWakeUpSettings {
     flashColor: string;
     flashDuration: number; // Duration of the flash color in milliseconds
     flashInterval: number; // Interval between flashes in milliseconds
@@ -8,7 +8,7 @@ interface IdleNotifierSettings {
     idleTimeSeconds: number; // Time in seconds before flashing starts
 }
 
-const DEFAULT_SETTINGS: IdleNotifierSettings = {
+const DEFAULT_SETTINGS: HeyWakeUpSettings = {
     flashColor: '#FF0000', // Default to red
     flashDuration: 500, // 0.5 seconds
     flashInterval: 500, // 0.5 seconds
@@ -16,8 +16,8 @@ const DEFAULT_SETTINGS: IdleNotifierSettings = {
     idleTimeSeconds: 30, // 30 seconds by default
 }
 
-export default class IdleNotifierPlugin extends Plugin {
-    settings: IdleNotifierSettings;
+export default class HeyWakeUpPlugin extends Plugin {
+    settings: HeyWakeUpSettings;
     private idleTimer: number | null = null;
     private flashTimer: number | null = null;
     private flashCount: number = 0;
@@ -29,11 +29,11 @@ export default class IdleNotifierPlugin extends Plugin {
     }
 
     async onload() {
-        console.log('Loading Idle Notifier plugin');
+        console.log('Loading Hey, Wake Up! plugin');
 
         await this.loadSettings();
 
-        this.addSettingTab(new IdleNotifierSettingTab(this.app, this));
+        this.addSettingTab(new HeyWakeUpSettingTab(this.app, this));
 
         this.resetIdleTimer();
 
@@ -45,7 +45,7 @@ export default class IdleNotifierPlugin extends Plugin {
         const style = document.createElement('style');
         style.id = 'idle-notifier-style';
         style.textContent = `
-            .idle-notifier-flash-active {
+            .hey-wake-up-flash-active {
                 background-color: ${this.settings.flashColor} !important;
             }
         `;
@@ -53,10 +53,10 @@ export default class IdleNotifierPlugin extends Plugin {
     }
 
     onunload() {
-        console.log('Unloading Idle Notifier plugin');
+        console.log('Unloading Hey, Wake Up! plugin');
         this.clearIdleTimer();
         this.stopFlashing();
-        document.getElementById('idle-notifier-style')?.remove();
+        document.getElementById('hey-wake-up-style')?.remove();
     }
 
     async loadSettings() {
@@ -66,10 +66,10 @@ export default class IdleNotifierPlugin extends Plugin {
     async saveSettings() {
         await this.saveData(this.settings);
         // Update CSS style immediately after saving settings
-        const styleEl = document.getElementById('idle-notifier-style');
+        const styleEl = document.getElementById('hey-wake-up-style');
         if (styleEl) {
             styleEl.textContent = `
-                .idle-notifier-flash-active {
+                .hey-wake-up-flash-active {
                     background-color: ${this.settings.flashColor} !important;
                 }
             `;
@@ -112,7 +112,7 @@ export default class IdleNotifierPlugin extends Plugin {
             if (leaf.view.containerEl) {
                 const editorEl = leaf.view.containerEl.querySelector('.cm-editor');
                 if (editorEl) {
-                    editorEl.addClass('idle-notifier-flash-active');
+                    editorEl.addClass('hey-wake-up-flash-active');
                 }
             }
         });
@@ -123,7 +123,7 @@ export default class IdleNotifierPlugin extends Plugin {
                 if (leaf.view.containerEl) {
                     const editorEl = leaf.view.containerEl.querySelector('.cm-editor');
                     if (editorEl) {
-                        editorEl.removeClass('idle-notifier-flash-active');
+                        editorEl.removeClass('hey-wake-up-flash-active');
                     }
                 }
             });
@@ -143,7 +143,7 @@ export default class IdleNotifierPlugin extends Plugin {
             if (leaf.view.containerEl) {
                 const editorEl = leaf.view.containerEl.querySelector('.cm-editor');
                 if (editorEl) {
-                    editorEl.removeClass('idle-notifier-flash-active');
+                    editorEl.removeClass('hey-wake-up-flash-active');
                 }
             }
         });
@@ -157,10 +157,10 @@ export default class IdleNotifierPlugin extends Plugin {
     }
 }
 
-class IdleNotifierSettingTab extends PluginSettingTab {
-    plugin: IdleNotifierPlugin;
+class HeyWakeUpSettingTab extends PluginSettingTab {
+    plugin: HeyWakeUpPlugin;
 
-    constructor(app: App, plugin: IdleNotifierPlugin) {
+    constructor(app: App, plugin: HeyWakeUpPlugin) {
         super(app, plugin);
         this.plugin = plugin;
     }
@@ -170,7 +170,7 @@ class IdleNotifierSettingTab extends PluginSettingTab {
 
         containerEl.empty();
 
-        containerEl.createEl('h2', {text: 'Idle Notifier Settings'});
+        containerEl.createEl('h2', {text: 'Hey, Wake Up! Settings'});
 
         new Setting(containerEl)
             .setName('Flash Color')
