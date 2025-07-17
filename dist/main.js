@@ -8,7 +8,7 @@ const DEFAULT_SETTINGS = {
     flashCycles: 0, // Infinite flashes by default
     idleTimeSeconds: 30, // 30 seconds by default
 };
-class IdleNotifierPlugin extends obsidian_1.Plugin {
+class HeyWakeUpPlugin extends obsidian_1.Plugin {
     settings;
     idleTimer = null;
     flashTimer = null;
@@ -19,28 +19,28 @@ class IdleNotifierPlugin extends obsidian_1.Plugin {
         this.settings = DEFAULT_SETTINGS;
     }
     async onload() {
-        console.log('Loading Idle Notifier plugin');
+        console.log('Loading Hey, Wake Up! plugin');
         await this.loadSettings();
-        this.addSettingTab(new IdleNotifierSettingTab(this.app, this));
+        this.addSettingTab(new HeyWakeUpSettingTab(this.app, this));
         this.resetIdleTimer();
         // Listen for user activity
         this.registerDomEvent(document, 'mousemove', this.resetIdleTimer.bind(this));
         this.registerDomEvent(document, 'keydown', this.resetIdleTimer.bind(this));
         // Add a CSS class for flashing (no animation, just for applying color)
         const style = document.createElement('style');
-        style.id = 'idle-notifier-style';
+        style.id = 'hey-wake-up-style';
         style.textContent = `
-            .idle-notifier-flash-active {
+            .hey-wake-up-flash-active {
                 background-color: ${this.settings.flashColor} !important;
             }
         `;
         document.head.appendChild(style);
     }
     onunload() {
-        console.log('Unloading Idle Notifier plugin');
+        console.log('Unloading Hey, Wake Up! plugin');
         this.clearIdleTimer();
         this.stopFlashing();
-        document.getElementById('idle-notifier-style')?.remove();
+        document.getElementById('hey-wake-up-style')?.remove();
     }
     async loadSettings() {
         this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
@@ -48,10 +48,10 @@ class IdleNotifierPlugin extends obsidian_1.Plugin {
     async saveSettings() {
         await this.saveData(this.settings);
         // Update CSS style immediately after saving settings
-        const styleEl = document.getElementById('idle-notifier-style');
+        const styleEl = document.getElementById('hey-wake-up-style');
         if (styleEl) {
             styleEl.textContent = `
-                .idle-notifier-flash-active {
+                .hey-wake-up-flash-active {
                     background-color: ${this.settings.flashColor} !important;
                 }
             `;
@@ -90,7 +90,7 @@ class IdleNotifierPlugin extends obsidian_1.Plugin {
             if (leaf.view.containerEl) {
                 const editorEl = leaf.view.containerEl.querySelector('.cm-editor');
                 if (editorEl) {
-                    editorEl.addClass('idle-notifier-flash-active');
+                    editorEl.addClass('hey-wake-up-flash-active');
                 }
             }
         });
@@ -100,7 +100,7 @@ class IdleNotifierPlugin extends obsidian_1.Plugin {
                 if (leaf.view.containerEl) {
                     const editorEl = leaf.view.containerEl.querySelector('.cm-editor');
                     if (editorEl) {
-                        editorEl.removeClass('idle-notifier-flash-active');
+                        editorEl.removeClass('hey-wake-up-flash-active');
                     }
                 }
             });
@@ -119,7 +119,7 @@ class IdleNotifierPlugin extends obsidian_1.Plugin {
             if (leaf.view.containerEl) {
                 const editorEl = leaf.view.containerEl.querySelector('.cm-editor');
                 if (editorEl) {
-                    editorEl.removeClass('idle-notifier-flash-active');
+                    editorEl.removeClass('hey-wake-up-flash-active');
                 }
             }
         });
@@ -131,8 +131,8 @@ class IdleNotifierPlugin extends obsidian_1.Plugin {
         }
     }
 }
-exports.default = IdleNotifierPlugin;
-class IdleNotifierSettingTab extends obsidian_1.PluginSettingTab {
+exports.default = HeyWakeUpPlugin;
+class HeyWakeUpSettingTab extends obsidian_1.PluginSettingTab {
     plugin;
     constructor(app, plugin) {
         super(app, plugin);
@@ -141,7 +141,7 @@ class IdleNotifierSettingTab extends obsidian_1.PluginSettingTab {
     display() {
         const { containerEl } = this;
         containerEl.empty();
-        containerEl.createEl('h2', { text: 'Idle Notifier Settings' });
+        containerEl.createEl('h2', { text: 'Hey, Wake Up! Settings' });
         new obsidian_1.Setting(containerEl)
             .setName('Flash Color')
             .setDesc('Choose the color for the flashing effect. Default is red.')
