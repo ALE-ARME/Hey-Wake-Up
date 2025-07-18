@@ -41,7 +41,7 @@ export default class HeyWakeUpPlugin extends Plugin {
     }
 
     async onload() {
-        console.log('Loading Hey, Wake Up! plugin');
+        
 
         await this.loadSettings();
 
@@ -78,7 +78,7 @@ export default class HeyWakeUpPlugin extends Plugin {
     }
 
     onunload() {
-        console.log('Unloading Hey, Wake Up! plugin');
+        
         this.clearIdleTimer();
         this.stopFlashing();
         document.getElementById('idle-notifier-style')?.remove();
@@ -123,7 +123,7 @@ export default class HeyWakeUpPlugin extends Plugin {
         }
         this.isFlashing = true;
         this.flashCount = 0; // Reset flash count
-        console.log('Starting to flash due to inactivity');
+        
         this.flashLoop();
     }
 
@@ -176,7 +176,7 @@ export default class HeyWakeUpPlugin extends Plugin {
     private stopFlashing() {
         if (!this.isFlashing) return;
         this.isFlashing = false;
-        console.log('Stopping flash');
+        
         this.clearFlashTimer();
 
         // Remove flash from all potentially flashed elements
@@ -226,10 +226,10 @@ class HeyWakeUpSettingTab extends PluginSettingTab {
 
         containerEl.empty();
 
-        containerEl.createEl('h2', {text: 'Hey, Wake Up! Settings'});
+        containerEl.createEl('h3', { text: 'Color and durations' });
 
         new Setting(containerEl)
-            .setName('Flash Color')
+            .setName('Flash color')
             .setDesc('Choose the color for the flashing effect. Default is red.')
             .addColorPicker(colorPicker => colorPicker
                 .setValue(this.plugin.settings.flashColor)
@@ -239,7 +239,7 @@ class HeyWakeUpSettingTab extends PluginSettingTab {
                 }));
 
         new Setting(containerEl)
-            .setName('Flash Duration')
+            .setName('Flash duration')
             .setDesc('How long the flash color stays visible (in milliseconds). Higher values mean longer flashes.')
             .addText(text => text
                 .setPlaceholder('500')
@@ -255,7 +255,7 @@ class HeyWakeUpSettingTab extends PluginSettingTab {
                 }));
 
         new Setting(containerEl)
-            .setName('Flash Interval')
+            .setName('Flash interval')
             .setDesc('The time between flashes (in milliseconds). Higher values mean slower flashing.')
             .addText(text => text
                 .setPlaceholder('500')
@@ -271,7 +271,7 @@ class HeyWakeUpSettingTab extends PluginSettingTab {
                 }));
 
         new Setting(containerEl)
-            .setName('Flash Cycles')
+            .setName('Flash cycles')
             .setDesc('Number of times the screen will flash. Set to 0 for infinite flashes.')
             .addText(text => text
                 .setPlaceholder('0')
@@ -287,7 +287,7 @@ class HeyWakeUpSettingTab extends PluginSettingTab {
                 }));
 
         new Setting(containerEl)
-            .setName('Idle Time')
+            .setName('Idle time')
             .setDesc('Time in seconds before the flashing starts.')
             .addText(text => text
                 .setPlaceholder('30')
@@ -302,10 +302,10 @@ class HeyWakeUpSettingTab extends PluginSettingTab {
                     }
                 }));
 
-        containerEl.createEl('h3', { text: 'UI Elements to Flash' });
+        containerEl.createEl('h3', { text: 'UI elements to flash' });
 
         new Setting(containerEl)
-            .setName('Flash Main Content Area')
+            .setName('Flash main content area')
             .setDesc('Flashes the primary content area of the active view.')
             .addToggle(toggle => {
                 toggle
@@ -317,7 +317,7 @@ class HeyWakeUpSettingTab extends PluginSettingTab {
             });
 
         new Setting(containerEl)
-            .setName('Flash Side Panes')
+            .setName('Flash side panes')
             .setDesc('Flashes the content of both left and right side panels.')
             .addToggle(toggle => {
                 toggle
@@ -329,7 +329,7 @@ class HeyWakeUpSettingTab extends PluginSettingTab {
             });
 
         new Setting(containerEl)
-            .setName('Flash View Headers')
+            .setName('Flash view headers')
             .setDesc('Flashes the title headers of all open views.')
             .addToggle(toggle => {
                 toggle
@@ -341,7 +341,7 @@ class HeyWakeUpSettingTab extends PluginSettingTab {
             });
 
         new Setting(containerEl)
-            .setName('Flash Status Bar')
+            .setName('Flash status bar')
             .setDesc('Flashes the status bar at the bottom.')
             .addToggle(toggle => {
                 toggle
@@ -353,7 +353,7 @@ class HeyWakeUpSettingTab extends PluginSettingTab {
             });
 
         new Setting(containerEl)
-            .setName('Flash Workspace Ribbon')
+            .setName('Flash workspace ribbon')
             .setDesc('Flashes the action ribbon on the very left.')
             .addToggle(toggle => {
                 toggle
@@ -365,7 +365,7 @@ class HeyWakeUpSettingTab extends PluginSettingTab {
             });
 
         new Setting(containerEl)
-            .setName('Flash Titlebar')
+            .setName('Flash titlebar')
             .setDesc('Flashes the titlebar of the Obsidian window.')
             .addToggle(toggle => {
                 toggle
