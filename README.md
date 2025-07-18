@@ -1,5 +1,5 @@
 # Description
-This plugin flashes the active note after you have been idle for some time to alert you, so you can start focusing on work again.
+This plugin flashes certain [Obsidian](https://github.com/obsidianmd)'s elements after you have been idle for some time to alert you, so you can start focusing on work again.
 
 It works on computer and mobile
 # Installation
