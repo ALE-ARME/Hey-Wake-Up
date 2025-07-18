@@ -16,7 +16,7 @@ It's not available there currently
 # Configuration
 After enabling the plugin you can modify its settings:
 - Flash color: using a color picker
-    - From mobile the color picker may be made of 3 bars. You have to move their cursor to the right side to see the rainbw of colors, and then adjust the cursors to the color you like
+    - On mobile the color picker may be made of 3 bars. You have to move their cursor to the right side to see the rainbw of colors, and then adjust the cursors to the color you like
 - Flash duration: how long the `flash color` will stay visible
 - Flash interval: the time between two flashes
 - Flash cycles: how many times the active note will flash
