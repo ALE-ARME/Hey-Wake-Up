@@ -22,6 +22,12 @@ After enabling the plugin you can modify its settings:
 - Flash cycles: how many times the active note will flash
 - Idle time: how many seconds have to pass before the active note will start flashing
 - Toggable buttons: toggle on the Obsidian's elements you want to make them flash
+    - Main Content Area
+    - Side Panes
+    - View Headers
+    - Status Bar
+    - Workspace Ribbon
+    - Titlebar
 
 A `data.json` file will be created containing the values of the above parameters
 # Uninstallation
