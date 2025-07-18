@@ -1,7 +1,7 @@
 # Description
 This plugin flashes certain [Obsidian](https://github.com/obsidianmd)'s elements after you have been idle for some time to alert you, so you can start focusing on work again.
 
-It works on computer and mobile
+It works on computer and mobile and it's useful if you get distracted a lot
 # Installation
 ## Manual
 1. Go to the [latest release page](https://github.com/ALE-ARME/Hey-Wake-Up/releases/latest)
