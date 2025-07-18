@@ -2,11 +2,17 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const obsidian_1 = require("obsidian");
 const DEFAULT_SETTINGS = {
-    flashColor: '#FF0000', // Default to red
-    flashDuration: 500, // 0.5 seconds
-    flashInterval: 500, // 0.5 seconds
-    flashCycles: 0, // Infinite flashes by default
-    idleTimeSeconds: 30, // 30 seconds by default
+    flashColor: '#FF0000',
+    flashDuration: 500,
+    flashInterval: 500,
+    flashCycles: 0,
+    idleTimeSeconds: 30,
+    flashViewContent: true,
+    flashSidePanes: false,
+    flashViewHeader: false,
+    flashStatusBar: false,
+    flashRibbon: false,
+    flashTitlebar: false,
 };
 class HeyWakeUpPlugin extends obsidian_1.Plugin {
     settings;
@@ -23,12 +29,23 @@ class HeyWakeUpPlugin extends obsidian_1.Plugin {
         await this.loadSettings();
         this.addSettingTab(new HeyWakeUpSettingTab(this.app, this));
         this.resetIdleTimer();
-        // Listen for user activity
+        // Listen for user activity to reset the timer
         this.registerDomEvent(document, 'mousemove', this.resetIdleTimer.bind(this));
         this.registerDomEvent(document, 'keydown', this.resetIdleTimer.bind(this));
+        this.registerDomEvent(document, 'touchstart', this.resetIdleTimer.bind(this));
+        this.registerDomEvent(document, 'scroll', this.resetIdleTimer.bind(this));
+        this.registerDomEvent(document, 'wheel', this.resetIdleTimer.bind(this));
+        this.registerDomEvent(document, 'mousedown', this.resetIdleTimer.bind(this));
+        this.registerDomEvent(document, 'mouseup', this.resetIdleTimer.bind(this));
+        // Handle window focus to prevent flashing when app is not in foreground
+        this.registerDomEvent(window, 'focus', this.resetIdleTimer.bind(this));
+        this.registerDomEvent(window, 'blur', () => {
+            this.clearIdleTimer();
+            this.stopFlashing();
+        });
         // Add a CSS class for flashing (no animation, just for applying color)
         const style = document.createElement('style');
-        style.id = 'hey-wake-up-style';
+        style.id = 'idle-notifier-style';
         style.textContent = `
             .hey-wake-up-flash-active {
                 background-color: ${this.settings.flashColor} !important;
@@ -40,7 +57,7 @@ class HeyWakeUpPlugin extends obsidian_1.Plugin {
         console.log('Unloading Hey, Wake Up! plugin');
         this.clearIdleTimer();
         this.stopFlashing();
-        document.getElementById('hey-wake-up-style')?.remove();
+        document.getElementById('idle-notifier-style')?.remove();
     }
     async loadSettings() {
         this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
@@ -48,7 +65,7 @@ class HeyWakeUpPlugin extends obsidian_1.Plugin {
     async saveSettings() {
         await this.saveData(this.settings);
         // Update CSS style immediately after saving settings
-        const styleEl = document.getElementById('hey-wake-up-style');
+        const styleEl = document.getElementById('idle-notifier-style');
         if (styleEl) {
             styleEl.textContent = `
                 .hey-wake-up-flash-active {
@@ -71,8 +88,10 @@ class HeyWakeUpPlugin extends obsidian_1.Plugin {
         }
     }
     startFlashing() {
-        if (this.isFlashing)
+        // Do not flash if the window is not visible or if already flashing
+        if (this.isFlashing || document.hidden) {
             return;
+        }
         this.isFlashing = true;
         this.flashCount = 0; // Reset flash count
         console.log('Starting to flash due to inactivity');
@@ -85,25 +104,39 @@ class HeyWakeUpPlugin extends obsidian_1.Plugin {
             this.stopFlashing();
             return;
         }
-        // Apply flash class to active note pane background
-        this.app.workspace.iterateAllLeaves((leaf) => {
-            if (leaf.view.containerEl) {
-                const editorEl = leaf.view.containerEl.querySelector('.cm-editor');
-                if (editorEl) {
-                    editorEl.addClass('hey-wake-up-flash-active');
-                }
+        const flashElements = (addClass) => {
+            const action = addClass ? 'addClass' : 'removeClass';
+            if (this.settings.flashViewContent) {
+                // Target the active editor view content specifically
+                const activeEditorContent = this.app.workspace.activeLeaf?.view.containerEl.querySelector('.view-content');
+                if (activeEditorContent)
+                    activeEditorContent[action]('hey-wake-up-flash-active');
             }
-        });
+            if (this.settings.flashSidePanes) {
+                this.app.workspace.containerEl.querySelectorAll('.workspace-leaf-content').forEach(el => el[action]('hey-wake-up-flash-active'));
+            }
+            if (this.settings.flashViewHeader) {
+                this.app.workspace.containerEl.querySelectorAll('.view-header-title-container').forEach(el => el[action]('hey-wake-up-flash-active'));
+            }
+            if (this.settings.flashStatusBar) {
+                const statusBar = document.body.querySelector('.status-bar');
+                if (statusBar)
+                    statusBar[action]('hey-wake-up-flash-active');
+            }
+            if (this.settings.flashRibbon) {
+                const ribbon = this.app.workspace.containerEl.querySelector('.workspace-ribbon');
+                if (ribbon)
+                    ribbon[action]('hey-wake-up-flash-active');
+            }
+            if (this.settings.flashTitlebar) {
+                const titlebar = document.body.querySelector('.titlebar');
+                if (titlebar)
+                    titlebar[action]('hey-wake-up-flash-active');
+            }
+        };
+        flashElements(true); // Add flash
         this.flashTimer = window.setTimeout(() => {
-            // Remove flash class from active note pane background
-            this.app.workspace.iterateAllLeaves((leaf) => {
-                if (leaf.view.containerEl) {
-                    const editorEl = leaf.view.containerEl.querySelector('.cm-editor');
-                    if (editorEl) {
-                        editorEl.removeClass('hey-wake-up-flash-active');
-                    }
-                }
-            });
+            flashElements(false); // Remove flash
             this.flashCount++;
             this.flashTimer = window.setTimeout(() => this.flashLoop(), this.settings.flashInterval);
         }, this.settings.flashDuration);
@@ -114,15 +147,28 @@ class HeyWakeUpPlugin extends obsidian_1.Plugin {
         this.isFlashing = false;
         console.log('Stopping flash');
         this.clearFlashTimer();
-        // Ensure active note pane background is reset to normal state
-        this.app.workspace.iterateAllLeaves((leaf) => {
-            if (leaf.view.containerEl) {
-                const editorEl = leaf.view.containerEl.querySelector('.cm-editor');
-                if (editorEl) {
-                    editorEl.removeClass('hey-wake-up-flash-active');
-                }
-            }
+        // Remove flash from all potentially flashed elements
+        const elementsToClear = [
+            '.view-content',
+            '.workspace-leaf-content',
+            '.view-header-title-container',
+            '.workspace-ribbon'
+        ];
+        // Also specifically target the side panes
+        this.app.workspace.containerEl.querySelectorAll('.workspace-leaf-content').forEach(el => {
+            el.removeClass('hey-wake-up-flash-active');
         });
+        elementsToClear.forEach(selector => {
+            this.app.workspace.containerEl.querySelectorAll(selector).forEach(el => {
+                el.removeClass('hey-wake-up-flash-active');
+            });
+        });
+        const statusBar = document.body.querySelector('.status-bar');
+        if (statusBar)
+            statusBar.removeClass('hey-wake-up-flash-active');
+        const titlebar = document.body.querySelector('.titlebar');
+        if (titlebar)
+            titlebar.removeClass('hey-wake-up-flash-active');
     }
     clearFlashTimer() {
         if (this.flashTimer !== null) {
@@ -215,6 +261,73 @@ class HeyWakeUpSettingTab extends obsidian_1.PluginSettingTab {
                 console.warn('Invalid Idle Time value. Please enter a non-negative number.');
             }
         }));
+        containerEl.createEl('h3', { text: 'UI Elements to Flash' });
+        new obsidian_1.Setting(containerEl)
+            .setName('Flash Main Content Area')
+            .setDesc('Flashes the primary content area of the active view.')
+            .addToggle(toggle => {
+            toggle
+                .setValue(this.plugin.settings.flashViewContent)
+                .onChange(async (value) => {
+                this.plugin.settings.flashViewContent = value;
+                await this.plugin.saveSettings();
+            });
+        });
+        new obsidian_1.Setting(containerEl)
+            .setName('Flash Side Panes')
+            .setDesc('Flashes the content of both left and right side panels.')
+            .addToggle(toggle => {
+            toggle
+                .setValue(this.plugin.settings.flashSidePanes)
+                .onChange(async (value) => {
+                this.plugin.settings.flashSidePanes = value;
+                await this.plugin.saveSettings();
+            });
+        });
+        new obsidian_1.Setting(containerEl)
+            .setName('Flash View Headers')
+            .setDesc('Flashes the title headers of all open views.')
+            .addToggle(toggle => {
+            toggle
+                .setValue(this.plugin.settings.flashViewHeader)
+                .onChange(async (value) => {
+                this.plugin.settings.flashViewHeader = value;
+                await this.plugin.saveSettings();
+            });
+        });
+        new obsidian_1.Setting(containerEl)
+            .setName('Flash Status Bar')
+            .setDesc('Flashes the status bar at the bottom.')
+            .addToggle(toggle => {
+            toggle
+                .setValue(this.plugin.settings.flashStatusBar)
+                .onChange(async (value) => {
+                this.plugin.settings.flashStatusBar = value;
+                await this.plugin.saveSettings();
+            });
+        });
+        new obsidian_1.Setting(containerEl)
+            .setName('Flash Workspace Ribbon')
+            .setDesc('Flashes the action ribbon on the very left.')
+            .addToggle(toggle => {
+            toggle
+                .setValue(this.plugin.settings.flashRibbon)
+                .onChange(async (value) => {
+                this.plugin.settings.flashRibbon = value;
+                await this.plugin.saveSettings();
+            });
+        });
+        new obsidian_1.Setting(containerEl)
+            .setName('Flash Titlebar')
+            .setDesc('Flashes the titlebar of the Obsidian window.')
+            .addToggle(toggle => {
+            toggle
+                .setValue(this.plugin.settings.flashTitlebar)
+                .onChange(async (value) => {
+                this.plugin.settings.flashTitlebar = value;
+                await this.plugin.saveSettings();
+            });
+        });
     }
 }
 //# sourceMappingURL=main.js.map

@@ -1,7 +1,7 @@
 {
     "id": "hey-wake-up",
     "name": "Hey, Wake Up!",
-    "version": "1.0.0",
+    "version": "1.0.5",
     "minAppVersion": "0.15.0",
     "description": "Catches your attention when you are idle for XX seconds by flashing the active note",
     "author": "ALE-ARME",
