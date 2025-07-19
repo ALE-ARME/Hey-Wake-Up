@@ -6,5 +6,5 @@
     "description": "Catches your attention when you are idle for XX seconds by flashing GUI's elements",
     "author": "ALE-ARME",
     "authorUrl": "https://github.com/ALE-ARME",
-    "isDesktopOnly": "false"
+    "isDesktopOnly": false
 }
