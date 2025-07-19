@@ -7,7 +7,7 @@
     "build": "tsc"
   },
   "keywords": [],
-  "author": "",
+  "author": "ALE-ARME",
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
