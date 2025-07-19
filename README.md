@@ -12,7 +12,7 @@ It works on computer and mobile and it's useful if you get distracted a lot
 6. Go to `Obsidian's Community Plugins` tab in Obsidian's settings and reload the plugins list
 7. Enable the plugin
 ## From Community Plugins Tab
-It's not available there currently
+It's not available there currently, but i've submitted it.
 # Configuration
 After enabling the plugin you can modify its settings:
 - Flash color: using a color picker
